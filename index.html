@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fás — Product Matchers & Lead Magnets. Free to Build.</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◎</text></svg>">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --black: #000000;
+            --dark: #0a0a0a;
+            --gray-900: #1d1d1f;
+            --gray-700: #424245;
+            --gray-600: #515154;
+            --gray-500: #6e6e73;
+            --gray-400: #86868b;
+            --gray-300: #a1a1a6;
+            --gray-200: #d2d2d7;
+            --gray-100: #f5f5f7;
+            --white: #ffffff;
+            --accent: #2997ff;
+            --accent-warm: #c4842d;
+            --green: #30d158;
+            --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+        body {
+            font-family: var(--font);
+            background: var(--black);
+            color: var(--white);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+            line-height: 1.47059;
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--gray-700); border-radius: 10px; }
+        img { display: block; max-width: 100%; }
+
+        .page-loader {
+            position: fixed; inset: 0; background: var(--black); z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.6s ease 0.2s, visibility 0.6s ease 0.2s;
+        }
+        .page-loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .loader-text { font-size: 14px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gray-500); animation: loaderPulse 1.2s ease-in-out infinite; }
+        @keyframes loaderPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+            height: 48px; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 max(24px, env(safe-area-inset-left));
+            background: rgba(0,0,0,0.72);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            transition: background 0.36s ease, border-color 0.36s ease;
+            border-bottom: 1px solid rgba(255,255,255,0);
+        }
+        nav.scrolled { background: rgba(0,0,0,0.92); border-bottom-color: rgba(255,255,255,0.06); }
+
+        .nav-logo { font-size: 17px; font-weight: 600; letter-spacing: 0.06em; color: var(--white); text-decoration: none; }
+        .nav-links { display: flex; gap: 28px; list-style: none; }
+        .nav-links a { font-size: 12px; color: var(--gray-300); text-decoration: none; transition: color 0.24s; letter-spacing: 0.01em; }
+        .nav-links a:hover { color: var(--white); }
+        .nav-cta {
+            font-size: 12px; color: var(--green); text-decoration: none; transition: color 0.24s;
+            font-weight: 500; cursor: pointer; background: none; border: none; font-family: var(--font);
+        }
+        .nav-cta:hover { color: var(--white); }
+
+        .reveal {
+            opacity: 0; transform: translateY(32px);
+            transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1);
+        }
+        .reveal.revealed { opacity: 1; transform: translateY(0); }
+        .reveal-d1 { transition-delay: 0.08s; }
+        .reveal-d2 { transition-delay: 0.16s; }
+        .reveal-d3 { transition-delay: 0.24s; }
+        .reveal-d4 { transition-delay: 0.32s; }
+
+        #hero {
+            min-height: 100vh; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center;
+            padding: 140px 24px 120px; position: relative; overflow: hidden;
+        }
+        .hero-bg { position: absolute; inset: 0; z-index: 0; }
+        .hero-bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.2; transform: scale(1.08); transition: transform 0.1s linear; }
+        .hero-gradient {
+            position: absolute; inset: 0; z-index: 1;
+            background:
+                radial-gradient(ellipse 60% 50% at 50% 40%, transparent 0%, var(--black) 100%),
+                linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 30%, rgba(0,0,0,0.85) 100%);
+        }
+        .hero-content { position: relative; z-index: 2; max-width: 920px; }
+        .hero-eyebrow { font-size: clamp(13px,1.1vw,17px); color: var(--gray-400); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 20px; font-weight: 500; }
+        .hero-title {
+            font-size: clamp(56px,12vw,160px); font-weight: 700; letter-spacing: -0.045em; line-height: 0.88; margin-bottom: 28px;
+            background: linear-gradient(180deg, #ffffff 20%, rgba(255,255,255,0.55) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .hero-subtitle { font-size: clamp(17px,2.2vw,26px); color: var(--gray-400); font-weight: 300; line-height: 1.45; max-width: 660px; margin: 0 auto 32px; }
+        .hero-free-badge {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 10px 24px; border-radius: 980px; font-size: 14px; font-weight: 600;
+            background: rgba(48,209,88,0.1); color: var(--green); border: 1px solid rgba(48,209,88,0.2);
+            margin-bottom: 48px; letter-spacing: 0.01em;
+        }
+        .hero-services { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 48px; }
+        .hero-service-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 22px; border-radius: 980px; font-size: 14px; font-weight: 500;
+            border: 1px solid var(--gray-700); color: var(--gray-300); background: rgba(255,255,255,0.03);
+            cursor: default;
+        }
+        .hero-service-pill .pill-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .hero-service-pill.matcher .pill-dot { background: var(--accent); }
+        .hero-service-pill.magnet .pill-dot { background: var(--accent-warm); }
+        .hero-ctas { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px; padding: 14px 30px; border-radius: 980px;
+            font-family: var(--font); font-size: 15px; font-weight: 500; cursor: pointer;
+            text-decoration: none; transition: all 0.28s cubic-bezier(0.25,0.46,0.45,0.94); border: none; outline: none;
+        }
+        .btn-primary { background: var(--white); color: var(--black); }
+        .btn-primary:hover { transform: scale(1.04); box-shadow: 0 2px 32px rgba(255,255,255,0.12); }
+        .btn-ghost { background: transparent; color: var(--gray-400); }
+        .btn-ghost:hover { color: var(--white); }
+
+        .scroll-cue { position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); z-index: 2; }
+        .scroll-cue span {
+            display: block; width: 1px; height: 40px;
+            background: linear-gradient(to bottom, var(--gray-500), transparent);
+            margin: 0 auto; animation: scrollLine 2s ease-in-out infinite;
+        }
+        @keyframes scrollLine {
+            0% { opacity: 0; transform: scaleY(0); transform-origin: top; }
+            50% { opacity: 1; transform: scaleY(1); transform-origin: top; }
+            100% { opacity: 0; transform: scaleY(0); transform-origin: bottom; }
+        }
+
+        /* ── Philosophy ── */
+        #philosophy { padding: clamp(100px,14vw,200px) clamp(32px,7vw,140px); background: var(--gray-100); color: var(--gray-900); }
+        .philosophy-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(48px, 6vw, 100px);
+            align-items: center;
+        }
+        .philosophy-text { font-size: clamp(30px,4.8vw,68px); font-weight: 600; line-height: 1.1; letter-spacing: -0.035em; }
+        .philosophy-text em { font-style: normal; color: var(--gray-500); }
+        .philosophy-note { margin-top: 56px; font-size: clamp(15px,1.4vw,19px); color: var(--gray-500); line-height: 1.65; font-weight: 400; }
+        .philosophy-visual {
+            display: flex; align-items: center; justify-content: center;
+        }
+        .philosophy-visual img {
+            width: 100%; max-width: 480px; border-radius: 20px;
+        }
+
+        .section-label { font-size: 13px; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500; margin-bottom: 14px; }
+        .section-label.warm { color: var(--accent-warm); }
+        .section-heading { font-size: clamp(34px,5vw,60px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.07; margin-bottom: 72px; max-width: 600px; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 0; }
+        .stat { border-top: 1px solid var(--gray-700); padding-top: 20px; padding-right: 40px; }
+        .stat-number { font-size: clamp(40px,5.5vw,72px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin-bottom: 6px; color: var(--white); }
+        .stat-unit { font-size: clamp(18px,2vw,28px); font-weight: 300; color: var(--gray-400); }
+        .stat-label { font-size: 14px; color: var(--gray-500); font-weight: 400; line-height: 1.55; margin-top: 8px; }
+
+        /* ── Matcher ── */
+        #matcher { background: var(--black); }
+        .service-hero { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+        .service-hero-visual { position: relative; overflow: hidden; }
+        .service-hero-visual img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1s ease, transform 8s linear; }
+        .service-hero-visual img.loaded { opacity: 0.65; }
+        .service-hero-visual img.loaded:hover { transform: scale(1.03); }
+        .service-hero-text { display: flex; flex-direction: column; justify-content: center; padding: clamp(60px,8vw,120px) clamp(32px,5vw,100px); }
+        .service-hero-text .section-heading { margin-bottom: 32px; }
+        .service-hero-text .desc { font-size: clamp(15px,1.4vw,19px); color: var(--gray-400); line-height: 1.65; max-width: 420px; margin-bottom: 20px; }
+        .service-free-note {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 14px; color: var(--green); font-weight: 500; margin-bottom: 32px;
+        }
+        .service-divider { border: none; height: 1px; background: var(--gray-700); margin: 0 clamp(32px,7vw,140px); }
+        .service-stats-section { padding: clamp(80px,10vw,150px) clamp(32px,7vw,140px); }
+
+        /* ── Magnets ── */
+        #magnets { background: var(--dark); }
+        .magnets-grid-section { padding: clamp(80px,10vw,150px) clamp(32px,7vw,140px); }
+        .magnets-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 64px; flex-wrap: wrap; gap: 32px; }
+        .magnets-header .section-heading { margin-bottom: 0; }
+        .magnets-header > p { font-size: 16px; color: var(--gray-500); max-width: 340px; line-height: 1.6; text-align: right; }
+        .magnets-grid { display: grid; grid-template-columns: 1.3fr 1fr; grid-template-rows: 340px 340px; gap: 16px; }
+        .magnets-item { position: relative; border-radius: 18px; overflow: hidden; background: var(--gray-900); }
+        .magnets-item:first-child { grid-row: 1 / 3; }
+        .magnets-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+        .magnets-item:hover img { transform: scale(1.05); }
+        .magnets-item-caption {
+            position: absolute; bottom: 20px; left: 20px; font-size: 12px; color: var(--white);
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            padding: 6px 14px; border-radius: 980px; letter-spacing: 0.02em;
+        }
+
+        /* ── Demo ── */
+        #demo { padding: clamp(90px,12vw,170px) clamp(32px,7vw,140px); background: var(--black); color: var(--white); }
+        #demo .section-heading { color: var(--white); }
+        .demo-intro { font-size: clamp(15px,1.4vw,19px); color: var(--gray-400); max-width: 540px; margin-bottom: 64px; line-height: 1.6; font-weight: 400; }
+
+        .demo-quiz-wrapper {
+            background: var(--dark); border: 1px solid var(--gray-700); border-radius: 24px;
+            max-width: 800px; margin: 0 auto; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+        }
+        .demo-quiz-wrapper .quiz-progress { height: 2px; background: var(--gray-700); }
+        .demo-quiz-wrapper .quiz-progress-bar { height: 100%; background: var(--accent-warm); width: 0%; transition: width 0.5s cubic-bezier(0.16,1,0.3,1); }
+        .demo-quiz-wrapper .quiz-content { padding: clamp(2rem,5vw,3.5rem); }
+        .demo-quiz-wrapper .question-counter { font-size: 13px; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; font-weight: 500; }
+        .demo-quiz-wrapper .question-text { font-size: clamp(1.35rem,2.2vw,1.75rem); color: var(--white); margin-bottom: 2.5rem; line-height: 1.25; font-weight: 600; letter-spacing: -0.02em; }
+        .demo-quiz-wrapper .options-grid { display: grid; gap: 12px; }
+        .demo-quiz-wrapper .option-card {
+            padding: 1.25rem 1.5rem; border: 1px solid var(--gray-700); border-radius: 14px;
+            cursor: pointer; transition: all 0.24s ease; display: flex; align-items: center; gap: 1rem; background: var(--gray-900);
+        }
+        .demo-quiz-wrapper .option-card:hover { border-color: var(--gray-500); background: rgba(255,255,255,0.04); }
+        .demo-quiz-wrapper .option-card.selected { border-color: var(--accent-warm); background: rgba(196,132,45,0.08); }
+        .demo-quiz-wrapper .option-radio {
+            width: 22px; height: 22px; border: 2px solid var(--gray-500); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.24s ease;
+        }
+        .demo-quiz-wrapper .option-card.selected .option-radio { border-color: var(--accent-warm); background: var(--accent-warm); }
+        .demo-quiz-wrapper .option-card.selected .option-radio::after { content: '✓'; color: var(--white); font-size: 0.75rem; font-weight: 700; }
+        .demo-quiz-wrapper .option-text { font-size: 1rem; color: var(--gray-200); font-weight: 400; }
+        .demo-quiz-wrapper .quiz-nav { display: flex; justify-content: space-between; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--gray-700); }
+        .quiz-btn { padding: 12px 28px; border-radius: 980px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.24s ease; font-family: var(--font); }
+        .quiz-btn-primary { background: var(--white); color: var(--black); }
+        .quiz-btn-primary:hover { transform: scale(1.04); }
+        .quiz-btn-primary:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; }
+        .quiz-btn-secondary { background: transparent; color: var(--gray-400); border: 1px solid var(--gray-700); }
+        .quiz-btn-secondary:hover { color: var(--white); border-color: var(--gray-500); }
+        .quiz-btn-secondary:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .demo-quiz-wrapper .results-section { display: none; padding: clamp(2rem,5vw,3.5rem); animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .demo-quiz-wrapper .result-badge {
+            display: inline-block; padding: 6px 16px; border-radius: 980px; font-size: 12px; font-weight: 600;
+            margin-bottom: 1.5rem; letter-spacing: 0.02em;
+            background: rgba(196,132,45,0.1); color: var(--accent-warm); border: 1px solid rgba(196,132,45,0.2);
+        }
+        .demo-quiz-wrapper .result-score { font-size: 4rem; font-weight: 700; color: var(--white); line-height: 1; margin-bottom: 0.5rem; letter-spacing: -0.04em; }
+        .demo-quiz-wrapper .result-title { font-size: 1.75rem; color: var(--white); margin-bottom: 1rem; font-weight: 600; letter-spacing: -0.02em; }
+        .demo-quiz-wrapper .result-description { font-size: 1.05rem; color: var(--gray-400); max-width: 480px; margin: 0 auto 2.5rem; line-height: 1.6; }
+        .demo-quiz-wrapper .lead-capture { background: var(--gray-900); border-radius: 18px; padding: 2.5rem; margin-top: 2rem; border: 1px solid var(--gray-700); text-align: left; }
+        .demo-quiz-wrapper .lead-capture h3 { font-size: 1.35rem; color: var(--white); margin-bottom: 0.5rem; font-weight: 600; }
+        .demo-quiz-wrapper .lead-capture > p { color: var(--gray-400); margin-bottom: 2rem; font-size: 0.95rem; }
+        .demo-quiz-wrapper .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .demo-quiz-wrapper .form-group { margin-bottom: 1.25rem; }
+        .demo-quiz-wrapper .form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--gray-400); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .demo-quiz-wrapper .form-group input { width: 100%; padding: 14px 16px; border: 1px solid var(--gray-700); border-radius: 10px; font-size: 15px; background: var(--dark); color: var(--white); font-family: var(--font); transition: border-color 0.2s ease; }
+        .demo-quiz-wrapper .form-group input:focus { outline: none; border-color: var(--accent-warm); }
+        .demo-quiz-wrapper .form-group input::placeholder { color: var(--gray-600); }
+        .demo-quiz-wrapper .checkbox-group { display: flex; align-items: flex-start; gap: 12px; margin: 1.5rem 0; }
+        .demo-quiz-wrapper .checkbox-group input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--accent-warm); }
+        .demo-quiz-wrapper .checkbox-group label { font-size: 13px; color: var(--gray-500); line-height: 1.5; }
+        .demo-quiz-wrapper .submit-btn { width: 100%; padding: 16px; font-size: 15px; font-weight: 600; margin-top: 0.5rem; background: var(--accent-warm); color: var(--white); border-radius: 980px; border: none; cursor: pointer; transition: opacity 0.2s; font-family: var(--font); }
+        .demo-quiz-wrapper .submit-btn:hover { opacity: 0.9; }
+        .demo-quiz-wrapper .security-note { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 1rem; font-size: 12px; color: var(--gray-600); }
+
+        /* ── How It Works ── */
+        #how-it-works { background: var(--gray-100); color: var(--gray-900); }
+        .how-section { padding: clamp(80px,10vw,150px) clamp(32px,7vw,140px); }
+        .how-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 48px; }
+        .how-step { position: relative; }
+        .how-step-num {
+            font-size: 13px; color: var(--green); letter-spacing: 0.12em; text-transform: uppercase;
+            font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;
+        }
+        .how-step-num::after { content: ''; flex: 1; height: 1px; background: var(--gray-200); }
+        .how-step h3 { font-size: clamp(22px,2.2vw,30px); font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; margin-bottom: 14px; }
+        .how-step p { font-size: 15px; color: var(--gray-500); line-height: 1.65; }
+        .how-step .free-tag {
+            display: inline-block; padding: 4px 12px; border-radius: 980px; font-size: 11px;
+            font-weight: 600; letter-spacing: 0.04em; margin-top: 16px; text-transform: uppercase;
+            background: rgba(48,209,88,0.1); color: var(--green); border: 1px solid rgba(48,209,88,0.2);
+        }
+        .how-step .fee-tag {
+            display: inline-block; padding: 4px 12px; border-radius: 980px; font-size: 11px;
+            font-weight: 600; letter-spacing: 0.04em; margin-top: 16px; text-transform: uppercase;
+            background: rgba(0,0,0,0.06); color: var(--gray-700); border: 1px solid var(--gray-200);
+        }
+
+        /* ── CTA ── */
+        #cta { padding: clamp(120px,16vw,240px) 24px; text-align: center; background: var(--black); position: relative; overflow: hidden; }
+        .cta-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 700px; height: 700px; background: radial-gradient(circle, rgba(48,209,88,0.05) 0%, transparent 70%); pointer-events: none; }
+        .cta-title {
+            font-size: clamp(38px,7vw,88px); font-weight: 700; letter-spacing: -0.04em; line-height: 1.04; margin-bottom: 24px; position: relative;
+            background: linear-gradient(180deg, #ffffff 10%, rgb(255, 255, 255) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .cta-sub { font-size: clamp(16px,1.8vw,21px); color: var(--gray-400); font-weight: 300; margin-bottom: 16px; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.5; }
+        .cta-zero { font-size: 15px; color: var(--green); font-weight: 500; margin-bottom: 48px; letter-spacing: 0.01em; }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            z-index: 100000; display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-container {
+            background: var(--light); border: 1px solid var(--gray-700); border-radius: 28px;
+            padding: 2.5rem; max-width: 520px; width: 92%; position: relative;
+            transform: translateY(20px) scale(0.97); transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+        }
+        .modal-overlay.active .modal-container { transform: translateY(0) scale(1); }
+        .modal-close { position: absolute; top: 20px; right: 20px; background: var(--gray-700); border: none; color: var(--gray-300); width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .modal-close:hover { background: var(--gray-600); color: var(--white); }
+        .modal-step { display: none; }
+        .modal-step.active { display: block; animation: fadeIn 0.4s ease; }
+        .modal-header { margin-bottom: 2rem; padding-right: 2rem; }
+        .modal-title { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+        .modal-desc { font-size: 1rem; color: var(--gray-400); line-height: 1.5; }
+        .modal-options { display: grid; gap: 12px; }
+        .modal-option { padding: 1.25rem; border: 1px solid var(--gray-700); border-radius: 14px; cursor: pointer; transition: all 0.24s ease; background: var(--gray-900); }
+        .modal-option:hover { border-color: var(--gray-500); background: rgba(255,255,255,0.04); }
+        .modal-option.selected { border-color: var(--green); background: rgba(48,209,88,0.06); }
+        .modal-option h4 { font-size: 1.05rem; margin-bottom: 4px; font-weight: 600; color: var(--white); }
+        .modal-option p { font-size: 0.85rem; color: var(--gray-500); line-height: 1.4; }
+        .modal-option .option-free {
+            display: inline-block; font-size: 11px; font-weight: 600; color: var(--green);
+            letter-spacing: 0.04em; text-transform: uppercase; margin-top: 6px;
+        }
+        .modal-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .modal-form .form-group { margin-bottom: 1.25rem; }
+        .modal-form .form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--gray-400); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .modal-form .form-group input, .modal-form .form-group textarea { width: 100%; padding: 14px 16px; border: 1px solid var(--gray-700); border-radius: 10px; font-size: 15px; background: var(--dark); color: var(--white); font-family: var(--font); transition: border-color 0.2s ease; }
+        .modal-form .form-group textarea { resize: vertical; min-height: 80px; }
+        .modal-form .form-group input:focus, .modal-form .form-group textarea:focus { outline: none; border-color: var(--green); }
+        .modal-form .form-group input::placeholder, .modal-form .form-group textarea::placeholder { color: var(--gray-600); }
+        .modal-submit { width: 100%; padding: 16px; font-size: 15px; font-weight: 600; margin-top: 0.5rem; background: var(--white); color: var(--black); border-radius: 980px; border: none; cursor: pointer; transition: all 0.24s ease; font-family: var(--font); }
+        .modal-submit:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(255,255,255,0.1); }
+        .modal-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+        .modal-success-icon { width: 64px; height: 64px; background: rgba(48,209,88,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 28px; color: var(--green); }
+        .modal-nav-btn { padding: 10px 24px; border-radius: 980px; border: 1px solid var(--gray-700); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.24s ease; font-family: var(--font); background: transparent; color: var(--gray-400); margin-top: 1.5rem; display: inline-block; }
+        .modal-nav-btn:hover { border-color: var(--gray-500); color: var(--white); }
+
+        /* ── Footer ── */
+        footer { padding: 36px clamp(32px,7vw,140px); background: var(--black); border-top: 1px solid rgba(255,255,255,0.05); }
+        .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+        .footer-copy { font-size: 11px; color: var(--gray-600); letter-spacing: 0.01em; }
+        .footer-links { display: flex; gap: 24px; list-style: none; }
+        .footer-links a { font-size: 11px; color: var(--gray-600); text-decoration: none; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--gray-300); }
+
+        .loading-spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; border-top-color: currentColor; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Responsive ── */
+        @media (max-width: 1024px) {
+            .philosophy-layout { grid-template-columns: 1fr; }
+            .philosophy-visual { order: -1; }
+            .philosophy-visual img { max-width: 360px; }
+            .stats-grid { grid-template-columns: repeat(2,1fr); gap: 40px 32px; }
+            .how-grid { grid-template-columns: 1fr; gap: 48px; }
+            .how-step-num::after { display: none; }
+            .service-hero { grid-template-columns: 1fr; min-height: auto; }
+            .service-hero-visual { height: 50vh; min-height: 350px; }
+            .service-hero-text { padding: clamp(40px,6vw,80px) clamp(32px,5vw,80px); }
+            .magnets-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
+            .magnets-item:first-child { grid-row: auto; }
+            .magnets-item { height: 280px; }
+        }
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 32px 24px; }
+            .stat { padding-right: 0; }
+            .magnets-header { flex-direction: column; align-items: flex-start; }
+            .magnets-header > p { text-align: left; }
+            .demo-quiz-wrapper .form-row, .modal-form .form-row { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .modal-container { padding: 1.5rem; border-radius: 20px; }
+            .hero-services { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-loader" id="pageLoader"><span class="loader-text">Fás</span></div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="leadModal">
+        <div class="modal-container">
+            <button class="modal-close" onclick="closeModal()">✕</button>
+            <div class="modal-step active" id="modalStep1">
+                <div class="modal-header">
+                    <h2 class="modal-title">What do you need built?</h2>
+                    <p class="modal-desc">We'll design and build it for free. You only pay when it delivers clients.</p>
+                </div>
+                <div class="modal-options">
+                    <div class="modal-option" onclick="selectGoal(this, 'Product Matcher')">
+                        <h4>Product Matcher</h4>
+                        <p>Guide visitors to the right product or service through a conversational experience.</p>
+                        <span class="option-free">Built for free</span>
+                    </div>
+                    <div class="modal-option" onclick="selectGoal(this, 'Lead Magnet')">
+                        <h4>Lead Magnet</h4>
+                        <p>An assessment, calculator, or quiz that captures qualified leads with real value.</p>
+                        <span class="option-free">Built for free</span>
+                    </div>
+                    <div class="modal-option" onclick="selectGoal(this, 'Both')">
+                        <h4>Both</h4>
+                        <p>A full funnel — matcher at the top, magnet in the middle, qualified pipeline at the bottom.</p>
+                        <span class="option-free">Both built for free</span>
+                    </div>
+                </div>
+                <button class="modal-nav-btn" id="modalNextBtn" onclick="nextModalStep()" disabled>Continue →</button>
+            </div>
+            <div class="modal-step" id="modalStep2">
+                <div class="modal-header">
+                
+                </div>
+            
+            
+<script src="https://js-eu1.hsforms.net/forms/embed/148316001.js" defer></script>
+<div class="hs-form-frame" data-region="eu1" data-form-id="ac3c4ebf-e9f8-4f14-b35d-4008cccf16a5" data-portal-id="148316001"></div>
+
+
+            
+            </div>
+            <div class="modal-step" id="modalStep3" style="text-align: center; padding: 2rem 0;">
+                <div class="modal-success-icon">✓</div>
+                <h2 class="modal-title">You're in the queue</h2>
+                <p class="modal-desc" style="max-width: 340px; margin: 0 auto;">We'll review your details and reach out within 24 hours to start building. No invoice, no contract, no risk.</p>
+                <button class="modal-nav-btn" onclick="closeModal()" style="margin-top: 2rem;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nav -->
+    <nav id="mainNav">
+        <a href="#" class="nav-logo">Fás</a>
+        <ul class="nav-links">
+            <li><a href="#philosophy">Why</a></li>
+            <li><a href="#matcher">Matcher</a></li>
+            <li><a href="#magnets">Magnets</a></li>
+            <li><a href="#demo">Example</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+        </ul>
+        <button class="nav-cta" onclick="openModal()">Get Yours Built Free →</button>
+    </nav>
+
+    <main>
+
+        <!-- ═══════ HERO ═══════ -->
+        <section id="hero">
+            <div class="hero-bg">
+                <img src="https://picsum.photos/seed/fas-free-model/1920/1080.jpg" alt="" loading="eager">
+                <div class="hero-gradient"></div>
+            </div>
+            <div class="hero-content">
+                <p class="hero-eyebrow reveal">Free to build. Pay only when it works.</p>
+                <h1 class="hero-title reveal reveal-d1">Fás</h1>
+                <p class="hero-subtitle reveal reveal-d2">We design and build product matchers and lead magnets for your business — for free. You only pay us a fee when they start delivering you actual clients.</p>
+                <div class="hero-free-badge reveal reveal-d3">£0 upfront · No contract · No risk</div>
+                <div class="hero-services reveal reveal-d3">
+                    <span class="hero-service-pill matcher"><span class="pill-dot"></span> Product Matchers</span>
+                    <span class="hero-service-pill magnet"><span class="pill-dot"></span> Lead Magnets</span>
+                </div>
+                <div class="hero-ctas reveal reveal-d4">
+                    <button class="btn btn-primary" onclick="openModal()">Get Yours Built Free</button>
+                    <a href="#how-it-works" class="btn btn-ghost">How does this work? →</a>
+                </div>
+            </div>
+            <div class="scroll-cue"><span></span></div>
+        </section>
+
+        <!-- ═══════ PHILOSOPHY ═══════ -->
+        <section id="philosophy">
+            <div class="philosophy-layout">
+                <div>
+                    <p class="philosophy-text reveal">
+                        If we're good at what<br>
+                        we do, why should<br>
+                        <em>you take the risk?</em>
+                    </p>
+                    <p class="philosophy-note reveal reveal-d2">
+                        Agencies charge upfront because it protects them. We don't do that. We design, build, and launch your product matcher or lead magnet at zero cost to you. Our fee only kicks in when it's genuinely generating qualified clients for your business. If it doesn't work, you pay nothing. That's the deal.
+                    </p>
+                </div>
+                <div class="philosophy-visual reveal reveal-d3">
+                    <img src="https://i.ibb.co/KpLm3thM/Geometr-a.gif" alt="Geometric animation">
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════ PRODUCT MATCHER ═══════ -->
+        <section id="matcher">
+            <div class="service-hero">
+                <div class="service-hero-visual">
+                   <img src="https://i.ibb.co/fz2DgJ5w/download.gif" alt="Product Matcher visual">
+                </div>
+                <div class="service-hero-text">
+                    <p class="section-label reveal">Product Matcher</p>
+                    <h2 class="section-heading reveal reveal-d1">Guide them to<br>the right choice.</h2>
+                    <p class="desc reveal reveal-d2">
+                        We build a conversational product matcher that asks the right questions and recommends the perfect solution for each visitor. Your buyers feel understood. Your sales team gets leads who already know what they want.
+                    </p>
+                    <p class="service-free-note reveal reveal-d3">✓ Built for free — you only pay when it delivers clients</p>
+                    <div class="reveal reveal-d3">
+                        <button class="btn btn-primary" onclick="openModal()">Get a Matcher Built Free →</button>
+                    </div>
+                </div>
+            </div>
+            <hr class="service-divider">
+            <div class="service-stats-section" style="background: var(--black);">
+                <p class="section-label reveal">Matcher Results</p>
+                <h2 class="section-heading reveal reveal-d1">The difference<br>they deliver.</h2>
+                <div class="stats-grid">
+                    <div class="stat reveal">
+                        <div class="stat-number"><span class="counter" data-target="3">0</span><span class="stat-unit">x</span></div>
+                        <p class="stat-label">Higher match-to-purchase rate than static product pages.</p>
+                    </div>
+                    <div class="stat reveal reveal-d1">
+                        <div class="stat-number"><span class="counter" data-target="85">0</span><span class="stat-unit">%</span></div>
+                        <p class="stat-label">Average completion rate. People actually enjoy the experience.</p>
+                    </div>
+                    <div class="stat reveal reveal-d2">
+                        <div class="stat-number"><span class="counter" data-target="60">0</span><span class="stat-unit">%</span></div>
+                        <p class="stat-label">Fewer "which product is right for me?" support queries.</p>
+                    </div>
+                    <div class="stat reveal reveal-d3">
+                        <div class="stat-number"><span class="stat-unit">£</span><span class="counter" data-target="0">0</span></div>
+                        <p class="stat-label">Upfront cost to you. We only earn when it delivers.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════ LEAD MAGNETS ═══════ -->
+        <section id="magnets">
+            <div class="magnets-grid-section">
+                <div class="magnets-header">
+                    <div>
+                        <p class="section-label warm reveal">Lead Magnets</p>
+                        <h2 class="section-heading reveal reveal-d1">Magnets that<br>actually attract.</h2>
+                    </div>
+                    <p class="reveal reveal-d2">
+                        We create interactive assessments, ROI calculators, and scoring quizzes — built for free. Not just another PDF behind a form. Real, personalised value that captures high-intent leads and qualifies them instantly.
+                    </p>
+                </div>
+                <div class="magnets-grid">
+                    <div class="magnets-item reveal">
+                        <img src="https://i.ibb.co/d4sH2R4c/1.png" alt="1" border="0">
+                        <span class="magnets-item-caption">Assessments</span>
+                    </div>
+                    <div class="magnets-item reveal reveal-d1">
+                        <img src="https://i.ibb.co/gM15B4hj/2.png" alt="2" border="0"> alt="ROI Calculator example">
+                        <span class="magnets-item-caption">ROI Calculators</span>
+                    </div>
+                    <div class="magnets-item reveal reveal-d2">
+                        <img src="https://i.ibb.co/4RgN8S5t/3.png" alt="3" border="0">
+                        <span class="magnets-item-caption">Scoring Quizzes</span>
+                    </div>
+                </div>
+            </div>
+            <hr class="service-divider">
+            <div class="service-stats-section" style="background: var(--dark);">
+                <p class="section-label warm reveal">Magnet Results</p>
+                <h2 class="section-heading reveal reveal-d1">Leads that<br>actually convert.</h2>
+                <div class="stats-grid">
+                    <div class="stat reveal">
+                        <div class="stat-number"><span class="counter" data-target="4">0</span><span class="stat-unit">x</span></div>
+                        <p class="stat-label">More leads captured than traditional gated content.</p>
+                    </div>
+                    <div class="stat reveal reveal-d1">
+                        <div class="stat-number"><span class="counter" data-target="92">0</span><span class="stat-unit">%</span></div>
+                        <p class="stat-label">Average quiz completion rate. People love learning about themselves.</p>
+                    </div>
+                    <div class="stat reveal reveal-d2">
+                        <div class="stat-number"><span class="counter" data-target="35">0</span><span class="stat-unit">%</span></div>
+                        <p class="stat-label">Higher lead quality vs. standard form submissions.</p>
+                    </div>
+                    <div class="stat reveal reveal-d3">
+                        <div class="stat-number"><span class="stat-unit">£</span><span class="counter" data-target="0">0</span></div>
+                        <p class="stat-label">Upfront cost to you. We only earn when it delivers.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════ LIVE EXAMPLE ═══════ -->
+        <section id="demo">
+            <p class="section-label warm reveal">Live Example — Lead Magnet</p>
+            <h2 class="section-heading reveal reveal-d1">Try one we<br>built for free.</h2>
+            <p class="demo-intro reveal reveal-d2">
+                This is a real lead magnet we created at zero cost to the client — a Bathroom Renovation Readiness Assessment. Take the 60-second quiz to see exactly how it captures and qualifies leads through an interactive experience.
+            </p>
+            <div class="demo-quiz-wrapper reveal reveal-d3">
+                <div class="quiz-progress"><div class="quiz-progress-bar" id="progressBar"></div></div>
+                <div class="quiz-content" id="quizContent"></div>
+                <div class="results-section" id="resultsSection"></div>
+            </div>
+        </section>
+
+        <!-- ═══════ HOW IT WORKS ═══════ -->
+        <section id="how-it-works">
+            <div class="how-section">
+                <p class="section-label reveal" style="color: var(--green);">How It Works</p>
+                <h2 class="section-heading reveal reveal-d1">Three steps.<br>No risk.</h2>
+                <div class="how-grid">
+                    <div class="how-step reveal">
+                        <p class="how-step-num">01 — We build it</p>
+                        <h3>Strategy, design, and development — on us.</h3>
+                        <p>We learn your business, your audience, and your goals. Then we design and build a product matcher or lead magnet from scratch. You review it, we refine it, and we launch it. No invoice.</p>
+                        <span class="free-tag">Free</span>
+                    </div>
+                    <div class="how-step reveal reveal-d1">
+                        <p class="how-step-num">02 — It delivers clients</p>
+                        <h3>Your new experience goes live and starts qualifying leads.</h3>
+                        <p>Once launched, your matcher or magnet starts capturing intent data and feeding qualified leads into your pipeline. We integrate with your CRM, set up tracking, and monitor performance from day one.</p>
+                        <span class="free-tag">Free</span>
+                    </div>
+                    <div class="how-step reveal reveal-d2">
+                        <p class="how-step-num">03 — We get paid</p>
+                        <h3>Only when you get actual clients from it.</h3>
+                        <p>Our performance fee activates only when the product we built starts generating real, qualified clients for your business. If it doesn't deliver, we don't earn a penny. Complete alignment.</p>
+                        <span class="fee-tag">Performance fee only</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════ CTA ═══════ -->
+        <section id="cta">
+            <div class="cta-glow"></div>
+            <h2 class="cta-title reveal">Want one built<br>for free?</h2>
+            <p class="cta-sub reveal reveal-d1">Tell us what you need — a product matcher, a lead magnet, or both. We'll design it, build it, and launch it. If it doesn't get you clients, you pay nothing.</p>
+            <p class="cta-zero reveal reveal-d2">£0 upfront · No contract · No risk</p>
+            <div class="reveal reveal-d3">
+                <button class="btn btn-primary" onclick="openModal()">Get Yours Built Free</button>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="footer-inner">
+            <p class="footer-copy">© 2025 Fás. Free to build. Pay only when it works.</p>
+            <ul class="footer-links">
+                <li><a href="#">Privacy</a></li>
+                <li><a href="#">Terms</a></li>
+                <li><a href="#">Examples</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <script>
+        window.addEventListener('load', () => { setTimeout(() => document.getElementById('pageLoader').classList.add('hidden'), 600); });
+
+        const nav = document.getElementById('mainNav');
+        window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 60); }, { passive: true });
+
+        const heroImg = document.querySelector('.hero-bg img');
+        if (heroImg) window.addEventListener('scroll', () => { if (window.scrollY < window.innerHeight) heroImg.style.transform = `scale(1.08) translateY(${window.scrollY * 0.15}px)`; }, { passive: true });
+
+        const revealObserver = new IntersectionObserver(entries => { entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); revealObserver.unobserve(e.target); } }); }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        const counterObserver = new IntersectionObserver(entries => { entries.forEach(e => { if (e.isIntersecting) { const el = e.target, target = +el.dataset.target, start = performance.now(); const anim = now => { const p = Math.min((now - start) / 1200, 1); el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target); if (p < 1) requestAnimationFrame(anim); }; requestAnimationFrame(anim); counterObserver.unobserve(el); } }); }, { threshold: 0.5 });
+        document.querySelectorAll('.counter').forEach(el => counterObserver.observe(el));
+
+        document.querySelectorAll('img').forEach(img => { if (img.complete) img.classList.add('loaded'); else img.addEventListener('load', () => img.classList.add('loaded')); });
+        document.querySelectorAll('a[href^="#"]').forEach(a => { a.addEventListener('click', e => { const t = document.querySelector(a.getAttribute('href')); if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }); });
+
+        // ── Quiz ──
+        const questions = [
+            { id: 1, text: "How old is your current bathroom suite?", options: [{ text: "Less than 5 years old", score: 1 }, { text: "5–10 years old", score: 2 }, { text: "10–15 years old", score: 3 }, { text: "15+ years old", score: 4 }] },
+            { id: 2, text: "Are you noticing any signs of wear or damage?", options: [{ text: "No, everything looks pristine", score: 1 }, { text: "Minor grout discolouration or small chips", score: 2 }, { text: "Cracked tiles, loose fixtures, or peeling sealant", score: 3 }, { text: "Major leaks, mould, or damaged flooring", score: 4 }] },
+            { id: 3, text: "How would you describe your bathroom's storage?", options: [{ text: "Plenty of built-in storage, everything has a place", score: 1 }, { text: "It's adequate but could be smarter", score: 2 }, { text: "Cluttered surfaces, not enough cupboard space", score: 3 }, { text: "No storage at all — products everywhere", score: 4 }] },
+            { id: 4, text: "Is your bathroom layout working for your household?", options: [{ text: "Perfectly, no issues at all", score: 1 }, { text: "A few minor frustrations", score: 2 }, { text: "Poor flow — constantly bumping into things", score: 3 }, { text: "Completely impractical for how we live now", score: 4 }] },
+            { id: 5, text: "What's the water pressure and heating like?", options: [{ text: "Excellent — powerful shower, instant hot water", score: 1 }, { text: "Decent, could be better", score: 2 }, { text: "Weak shower or slow to heat up", score: 3 }, { text: "Terrible — dread using the shower or bath", score: 4 }] },
+            { id: 6, text: "How does your bathroom feel when you walk in?", options: [{ text: "Bright, airy, and relaxing", score: 1 }, { text: "It's fine — functional but nothing special", score: 2 }, { text: "Dim, dated, or a bit gloomy", score: 3 }, { text: "Dreadful — I avoid it if I can", score: 4 }] },
+            { id: 7, text: "Has your household changed since the bathroom was last done?", options: [{ text: "No changes at all", score: 1 }, { text: "Small changes — different routine maybe", score: 2 }, { text: "Growing family, teenagers, or working from home more", score: 3 }, { text: "Major changes — accessibility needs, new additions", score: 4 }] },
+            { id: 8, text: "How do you feel when guests need to use your bathroom?", options: [{ text: "Proud — it's one of the best rooms in the house", score: 1 }, { text: "It's fine, no embarrassment", score: 2 }, { text: "I'd rather they didn't, honestly", score: 3 }, { text: "I actively hide it or make excuses", score: 4 }] },
+            { id: 9, text: "Are you planning to sell or let the property in the next 3 years?", options: [{ text: "No plans to move", score: 1 }, { text: "Possibly, haven't decided", score: 2 }, { text: "Likely — a new bathroom would add value", score: 3 }, { text: "Definitely — the bathroom is holding back the sale", score: 4 }] },
+            { id: 10, text: "What's your budget comfort level for a bathroom renovation?", options: [{ text: "Just refreshing — new paint, fixtures, accessories", score: 1 }, { text: "Moderate — replace suite and re-tile", score: 2 }, { text: "Serious investment — full redesign with quality finishes", score: 3 }, { text: "Premium — the works, no compromises", score: 4 }] }
+        ];
+        let currentQuestion = 0, answers = [], totalScore = 0;
+
+        function renderQuestion() {
+            const q = questions[currentQuestion];
+            document.getElementById('progressBar').style.width = ((currentQuestion + 1) / questions.length * 100) + '%';
+            document.getElementById('quizContent').innerHTML = `
+                <div class="question-counter">Question ${currentQuestion + 1} of ${questions.length}</div>
+                <h2 class="question-text">${q.text}</h2>
+                <div class="options-grid">${q.options.map((o, i) => `<div class="option-card" onclick="selectOption(${i})" data-index="${i}"><div class="option-radio"></div><div class="option-text">${o.text}</div></div>`).join('')}</div>
+                <div class="quiz-nav">
+                    <button class="quiz-btn quiz-btn-secondary" onclick="previousQuestion()" ${currentQuestion === 0 ? 'disabled' : ''}>← Back</button>
+                    <button class="quiz-btn quiz-btn-primary" id="nextBtn" onclick="nextQuestion()" disabled>${currentQuestion === questions.length - 1 ? 'See Results' : 'Next →'}</button>
+                </div>`;
+        }
+
+        function selectOption(i) {
+            document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.option-card')[i].classList.add('selected');
+            document.getElementById('nextBtn').disabled = false;
+            answers[currentQuestion] = i;
+        }
+
+        function nextQuestion() {
+            if (answers[currentQuestion] === undefined) return;
+            totalScore += questions[currentQuestion].options[answers[currentQuestion]].score;
+            if (currentQuestion < questions.length - 1) { currentQuestion++; renderQuestion(); } else showResults();
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                const pa = answers[currentQuestion - 1];
+                if (pa !== undefined) totalScore -= questions[currentQuestion - 1].options[pa].score;
+                currentQuestion--; renderQuestion();
+                if (answers[currentQuestion] !== undefined) { selectOption(answers[currentQuestion]); document.getElementById('nextBtn').disabled = false; }
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quizContent').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+            let type, title, desc;
+            if (totalScore <= 16) { type = "Serving You Well"; title = "Your Bathroom Is in Great Shape"; desc = "Your bathroom is clearly well-maintained and functioning well. But even the best suites age — download our Bathroom Maintenance Guide to keep it looking pristine for years to come."; }
+            else if (totalScore <= 24) { type = "The Signs Are There"; title = "Start Planning Your Refresh"; desc = "Your bathroom is showing its age in subtle ways. It's not urgent yet, but starting the planning process now means you'll avoid costly emergency replacements."; }
+            else if (totalScore <= 32) { type = "Ready for a Renovation"; title = "Time to Transform Your Space"; desc = "Your bathroom is holding you back from the daily ritual you deserve. A full renovation will completely change how you start and end every day."; }
+            else { type = "Urgent: Renovation Needed"; title = "Don't Put It Off Any Longer"; desc = "Your bathroom needs urgent attention — whether it's leaks, mould, or a layout that simply doesn't work. These issues only get worse and more expensive over time."; }
+            document.getElementById('resultsSection').innerHTML = `
+                <div class="result-badge">${type}</div>
+                <div class="result-score">${totalScore}/40</div>
+                <h2 class="result-title">${title}</h2>
+                <p class="result-description">${desc}</p>
+                <div class="lead-capture">
+                    <h3>Get Your Personalised Bathroom Guide</h3>
+                    <p>Enter your details to receive your full assessment report plus our exclusive Bathroom Renovation Planning Guide.</p>
+                    <form onsubmit="handleSubmit(event)">
+                        <div class="form-row">
+                            <div class="form-group"><label for="firstName">First Name</label><input type="text" id="firstName" required placeholder="e.g. Sarah"></div>
+                            <div class="form-group"><label for="lastName">Last Name</label><input type="text" id="lastName" required placeholder="e.g. Mitchell"></div>
+                        </div>
+                        <div class="form-group"><label for="email">Email Address</label><input type="email" id="email" required placeholder="sarah@example.com"></div>
+                        <div class="form-group"><label for="phone">Phone Number (Optional)</label><input type="tel" id="phone" placeholder="0141 XXX XXXX"></div>
+                        <div class="form-group"><label for="postcode">Postcode</label><input type="text" id="postcode" required placeholder="e.g. G11 6PR"></div>
+                        <div class="checkbox-group"><input type="checkbox" id="consent" required><label for="consent">I agree to receive my free guide and occasional renovation tips. I can unsubscribe anytime. See our <a href="#" style="color:var(--accent-warm);">Privacy Policy</a>.</label></div>
+                        <button type="submit" class="submit-btn" id="submitBtn">Send Me My Bathroom Guide →</button>
+                        <div class="security-note"><span>🔒</span><span>Your information is secure. We never share your data.</span></div>
+                    </form>
+                </div>`;
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function handleSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<span class="loading-spinner"></span> Sending...'; btn.disabled = true; btn.style.opacity = '0.7';
+            setTimeout(() => {
+                btn.innerHTML = '✓ Guide Sent! Check Your Email'; btn.style.background = '#8b9d83'; btn.style.opacity = '1';
+                console.log('Lead captured:', { firstName: document.getElementById('firstName').value, lastName: document.getElementById('lastName').value, email: document.getElementById('email').value, phone: document.getElementById('phone').value, postcode: document.getElementById('postcode').value, score: totalScore, result: document.querySelector('.result-badge').textContent });
+                setTimeout(() => {
+                    document.getElementById('resultsSection').insertAdjacentHTML('beforeend', `
+                        <div style="margin-top:2rem;padding:2rem;background:rgba(48,209,88,0.06);border-radius:14px;border:1px solid rgba(48,209,88,0.15);">
+                            <h3 style="color:var(--green);margin-bottom:1rem;font-weight:600;">Want something like this — built for free?</h3>
+                            <p style="margin-bottom:1.5rem;color:var(--gray-400);font-size:0.95rem;">We designed and built this quiz at zero cost. We only got paid when it started delivering clients. We can do the same for you.</p>
+                            <button class="btn btn-primary" onclick="openModal()" style="font-size:14px;padding:12px 24px;">Get Yours Built Free</button>
+                        </div>`);
+                }, 1500);
+            }, 2000);
+        }
+
+        renderQuestion();
+
+        // ── Modal ──
+        let selectedGoal = '';
+        function openModal() { document.getElementById('leadModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
+        function closeModal() { document.getElementById('leadModal').classList.remove('active'); document.body.style.overflow = ''; }
+        document.getElementById('leadModal').addEventListener('click', e => { if (e.target === document.getElementById('leadModal')) closeModal(); });
+        function selectGoal(el, goal) { document.querySelectorAll('.modal-option').forEach(o => o.classList.remove('selected')); el.classList.add('selected'); selectedGoal = goal; document.getElementById('modalNextBtn').disabled = false; }
+        function nextModalStep() { if (!selectedGoal) return; document.getElementById('modalStep1').classList.remove('active'); document.getElementById('modalStep2').classList.add('active'); }
+        function submitModalForm(e) {
+            e.preventDefault();
+            const btn = document.getElementById('modalSubmitBtn');
+            btn.innerHTML = '<span class="loading-spinner" style="border-top-color:var(--black)"></span> Submitting...'; btn.disabled = true;
+            setTimeout(() => {
+                console.log('Free Build Request:', { service: selectedGoal, firstName: document.getElementById('modalFirstName').value, lastName: document.getElementById('modalLastName').value, email: document.getElementById('modalEmail').value, company: document.getElementById('modalCompany').value, brief: document.getElementById('modalBrief').value });
+                document.getElementById('modalStep2').classList.remove('active'); document.getElementById('modalStep3').classList.add('active');
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
